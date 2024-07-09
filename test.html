@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div style="display: flex; flex-direction: column;">
+    <label for="wordLength">Word Length</label>
+    <p id="wordLengthValue"></p>
+    <input type="range" min="1" max="100" value="1" class="slider" id="wordLength" onchange="updateTextInput(this.value);">
+    <label for="speed">Speed</label>
+    <p id="speedValue"></p>
+    <input type="range" min="50" max="200" value="50" class="slider" id="speed" onchange="updateTextInput(this.value);">
+    <label for="letterGenerationAmount">Letter Generation Amount</label>
+    <p id="letterGenerationAmountValue"></p>
+    <input type="range" min="1" max="6" value="1" class="slider" id="letterGenerationAmount" onchange="updateTextInput(this.value);">
+    <label for="minWordLength">Min Word Length</label>
+    <p id="minWordLengthValue"></p>
+    <input type="range" min="1" max="6" value="1" class="slider" id="minWordLength" onchange="updateTextInput(this.value);">
+    </div>
+
+    <p id="calculation"></p>
+    <p id="score"></p>
+</body>
+<script>
+    const updateTextInput = (val) => {
+        const wordLength = document.getElementById('wordLength').value;
+        const speed = document.getElementById('speed').value;
+        const letterGenerationAmount = document.getElementById('letterGenerationAmount').value;
+        const minWordLength = document.getElementById('minWordLength').value;
+
+        document.getElementById('wordLengthValue').innerText = `Word Length: ${wordLength}`;
+        document.getElementById('speedValue').innerText = `Speed: ${speed}`;
+        document.getElementById('letterGenerationAmountValue').innerText = `Letter Generation Amount: ${letterGenerationAmount}`;
+        document.getElementById('minWordLengthValue').innerText = `Min Word Length: ${minWordLength}`;
+
+        document.getElementById('calculation').innerText = `(${wordLength} * ((${wordLength} - 1) / 10) + ${wordLength}) *  (100 / ${speed}) * (3 / ${letterGenerationAmount}) * (3 / ${minWordLength})`;
+
+        const score =
+            (wordLength * 1.2 ** (wordLength - 1))
+            * (100 / speed)
+            * (3 / letterGenerationAmount)
+            * (3 / minWordLength);
+        document.getElementById('score').innerText = `Score: ${score}`;
+    }
+
+    updateTextInput(1);
+
+</script>
+</html>
