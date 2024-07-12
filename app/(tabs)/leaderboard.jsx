@@ -104,7 +104,7 @@ export default function TabTwoScreen() {
             }
             const leaderboardCall = await fetch(`http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/add/${username}/0`);
 
-            AsyncStorage.setItem('username', username);
+            AsyncStorage.setItem('username', username.toString());
             setSavedUsername(username);
           }}>
             <Ionicons name="arrow-forward" size={24} color="white" />

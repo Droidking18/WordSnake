@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dk306.wordSnake"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dk306.wordSnake"
     },
     "web": {
       "bundler": "metro",
@@ -39,6 +41,12 @@
       "eas": {
         "projectId": "cfa814fe-0561-4c8c-ab2c-eced294802ad"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/cfa814fe-0561-4c8c-ab2c-eced294802ad"
     }
   }
 }

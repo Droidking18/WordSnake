@@ -33,9 +33,24 @@ const SnakeGame = () => {
 
 
   const fetchSettings = async () => {
-    const speed = await AsyncStorage.getItem('speed') || '100';
-    const letterGenerationAmount = await AsyncStorage.getItem('letterGenerationAmount') || '3';
-    const minWordLength = await AsyncStorage.getItem('minWordLength') || '1';
+
+    if (speed && letterGenerationAmount && minWordLength) {
+      return;
+    }
+
+    let localSpeed = '';
+    let localLetterGenerationAmount = '';
+    let localMinWordLength = '';
+
+    try {
+      localSpeed = await AsyncStorage.getItem('speed') || '100';
+      localLetterGenerationAmount = await AsyncStorage.getItem('letterGenerationAmount') || '3';
+      localMinWordLength = await AsyncStorage.getItem('minWordLength') || '1';
+    } catch (e) {
+      setSpeed('100');
+      setLetterGenerationAmount('3');
+      setMinWordLength('1');
+    }
 
     setSpeed(speed);
     setLetterGenerationAmount(letterGenerationAmount);
@@ -50,8 +65,6 @@ const SnakeGame = () => {
 
   useEffect(() => {
     generateFruits();
-
-    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -157,7 +170,13 @@ const SnakeGame = () => {
 
       setScore(Math.round(score));
 
-      const username = await AsyncStorage.getItem('username');
+      let username = '';
+
+      try {
+        username = await AsyncStorage.getItem('username');
+      } catch (e) {
+        console.error(e);
+      }
       const highscoreRes = await fetch('http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/pipe-get/' + username);
 
       const highscoreText = await highscoreRes?.text();
