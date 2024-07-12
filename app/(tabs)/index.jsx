@@ -34,27 +34,14 @@ const SnakeGame = () => {
 
   const fetchSettings = async () => {
 
-    if (speed && letterGenerationAmount && minWordLength) {
-      return;
-    }
 
-    let localSpeed = '';
-    let localLetterGenerationAmount = '';
-    let localMinWordLength = '';
+    const speed = await AsyncStorage.getItem('speed') || 100;
+    const letterGenerationAmount = await AsyncStorage.getItem('letterGenerationAmount') || 3;
+    const minWordLength = await AsyncStorage.getItem('minWordLength') || 1;
 
-    try {
-      localSpeed = await AsyncStorage.getItem('speed') || '100';
-      localLetterGenerationAmount = await AsyncStorage.getItem('letterGenerationAmount') || '3';
-      localMinWordLength = await AsyncStorage.getItem('minWordLength') || '1';
-    } catch (e) {
-      setSpeed('100');
-      setLetterGenerationAmount('3');
-      setMinWordLength('1');
-    }
-
-    setSpeed(speed);
-    setLetterGenerationAmount(letterGenerationAmount);
-    setMinWordLength(minWordLength);
+    setSpeed(parseInt(speed));
+    setLetterGenerationAmount(parseInt(letterGenerationAmount));
+    setMinWordLength(parseInt(minWordLength));
   }
 
   // If we want to run when tab is focused, we can use useFocusEffect from react-navigation
@@ -388,6 +375,10 @@ const SnakeGame = () => {
           )}
 
         <Text>Score: {score}</Text>
+
+        <Text>Speed: {speed}</Text>
+        <Text>Letter generation amount: {letterGenerationAmount}</Text>
+        <Text>Minimum word length: {minWordLength}</Text>
 
         {/* <TouchableOpacity style={styles.button} onPress={() => handlePress('UP')}>
           <Text>UP</Text>
