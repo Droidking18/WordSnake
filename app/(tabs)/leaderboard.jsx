@@ -1,10 +1,12 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform, View, TextInput, Dimensions, TouchableOpacity } from 'react-native';
+import { StyleSheet, Image, Platform, View, TextInput, Dimensions, TouchableOpacity, useColorScheme, Modal } from 'react-native';
 
 import { Collapsible } from '@/components/Collapsible';
 import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
+import { ThemedTextInput } from '@/components/ThemedTextInput';
+
 import { ThemedView } from '@/components/ThemedView';
 import { useEffect, useState } from 'react';
 import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
@@ -34,9 +36,10 @@ export default function TabTwoScreen() {
   const [isTaken, setIsTaken] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [savedUsername, setSavedUsername] = useState('');
+  const [hasRemovedName, setHasRemovedName] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(true);
-  const [rotateAnimation] = useState(new Animated.Value(0))
+  const [rotateAnimation] = useState(new Animated.Value(0));
 
   const fetchUsername = async () => {
     const leaderboardCall = await fetch(`http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/json`);
@@ -80,23 +83,48 @@ export default function TabTwoScreen() {
     }]
   }
 
+  const isDarkMode = useColorScheme() === 'dark';
+
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Leaderboard</ThemedText>
       </ThemedView>
 
+      { hasRemovedName &&
+        <Modal animationType="slide" transparent={true} visible={hasRemovedName}>
+          <ThemedView style={styles.innerContainer}>
+            <ThemedText style={styles.headingText}>You have been removed from the leaderboard</ThemedText>
+            <ThemedText style={styles.headingText}>You can rejoin by entering a new username</ThemedText>
+            <TouchableOpacity style={styles.button} onPress={() => setHasRemovedName(false)}>
+              <ThemedText style={{ color: 'white' }}>Close</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        </Modal>
+      }
+
       { !savedUsername &&
-        <View style={styles.innerContainer}>
+        <ThemedView style={styles.innerContainer}>
           <ThemedText style={styles.headingText}>Please create a unique username to use the leaderboard feature</ThemedText>
-          <TextInput placeholder="Enter a username" style={{ height: 40, width: width * 0.8, borderColor: 'black', borderWidth: 1, borderRadius: 20, textAlign: 'center' }} onChangeText={async (text) => {
-            setUsername(text);
-            setIsLoading(true);
-            const leaderboardCall = await fetch(`http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/pipe-get/${text}`);
-            const response = await leaderboardCall.text();
-            setIsTaken(!!response);
-            setIsLoading(false);
-          }} />
+          <TextInput
+            placeholder="Enter a username"
+            style={{
+              height: 40,
+              width: width * 0.8,
+              borderColor: isDarkMode ? '#fff' : 'black',
+              color: isDarkMode ? '#fff' : 'black',
+              borderWidth: 1,
+              borderRadius: 20,
+              textAlign: 'center'
+            }}
+            onChangeText={async (text) => {
+              setUsername(text);
+              setIsLoading(true);
+              const leaderboardCall = await fetch(`http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/pipe-get/${text}`);
+              const response = await leaderboardCall.text();
+              setIsTaken(!!response);
+              setIsLoading(false);
+            }} />
           <TouchableOpacity style={styles.button} onPress={async () => {
 
             if (isTaken) {
@@ -106,29 +134,67 @@ export default function TabTwoScreen() {
 
             AsyncStorage.setItem('username', username.toString());
             setSavedUsername(username);
+            setUsername('');
           }}>
             <Ionicons name="arrow-forward" size={24} color="white" />
           </TouchableOpacity>
           <ThemedText style={{ color: isTaken ? 'red' : 'green' }}>{getInfoText()}</ThemedText>
-        </View>
+        </ThemedView>
       }
 
       { savedUsername &&
-        <View style={styles.innerTableContainer}>
+        <ThemedView style={styles.innerTableContainer}>
           <ThemedText style={styles.headingText}>Welcome back, {savedUsername || 'friend'}!</ThemedText>
           <TouchableOpacity style={styles.button} onPress={async () => {
             AsyncStorage.removeItem('username');
-            setSavedUsername('');
+            await fetch(`http://dreamlo.com/lb/IJ2qfzvs9EajL-xtC5WPNQUvU9D-usC0-XVosLskLlrQ/remove/${savedUsername}`);
+            setSavedUsername('')
+            setHasRemovedName(true);
+
+            setTimeout(() => {
+              setHasRemovedName(false);
+            }, 5000);
           }} >
             <ThemedText style={{ color: 'white' }}>Delete me from leaderboard</ThemedText>
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
           { leaderboard && leaderboard.map((entry, index) => {
-            return <View key={index + entry.name} style={{ flexDirection: 'row', justifyContent: 'space-between', width: width * 0.8, borderBottomWidth: 1, borderBottomColor: 'black', backgroundColor: entry.name === savedUsername ? 'lightblue' : index % 2 === 0 ? 'white' : 'lightgrey' }}>
-              <ThemedText style={styles.column}>{index + 1}</ThemedText>
-              <ThemedText style={styles.column}>{entry.name}</ThemedText>
-              <ThemedText style={styles.column}>{entry.score}</ThemedText>
-            </View>
+            return (
+              <ThemedView
+                key={index + entry.name}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  width: width * 0.8,
+                  borderBottomWidth: 1,
+                  borderBottomColor: 'black',
+
+                  borderColor: entry.name === savedUsername ? 'red' : 'transparent',
+                  borderWidth: 2,
+                  borderBottomWidth: 2,
+                  borderBottomColor: entry.name === savedUsername ? 'red' : 'transparent',
+                  backgroundColor: (isDarkMode ? index % 2 === 0 ? 'black' : 'darkgrey' : index % 2 === 0 ? 'white' : 'lightgrey')
+                }}>
+                <ThemedText style={[
+                  styles.column,
+                  index % 2 === 0 ? { color: isDarkMode ? 'white' : 'black' } : { color: 'black' }
+                ]}>
+                  {index + 1}
+                </ThemedText>
+                <ThemedText style={[
+                  styles.column,
+                  index % 2 === 0 ? { color: isDarkMode ? 'white' : 'black' } : { color: 'black' }
+                ]}>
+                  {entry.name}
+                </ThemedText>
+                <ThemedText style={[
+                  styles.column,
+                  index % 2 === 0 ? { color: isDarkMode ? 'white' : 'black' } : { color: 'black' }
+                ]}>
+                  {entry.score}
+                </ThemedText>
+              </ThemedView>
+            )
           })}
 
           { isLeaderboardLoading &&
@@ -138,16 +204,15 @@ export default function TabTwoScreen() {
           }
 
 
-        </View>
+        </ThemedView>
       }
 
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   headerImage: {
-    color: '#808080',
     bottom: -90,
     left: -35,
     position: 'absolute',
@@ -167,13 +232,11 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     paddingTop: 50,
   },
   innerContainer: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },

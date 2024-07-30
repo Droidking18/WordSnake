@@ -6,8 +6,7 @@ import wordListB from '../../assets/json/word_list_b.json';
 import wordListC from '../../assets/json/word_list_c.json';
 import wordListD from '../../assets/json/word_list_d.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
-import { isLoading } from 'expo-font';
+import { useFocusEffect, useNavigation } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -28,8 +27,12 @@ const SnakeGame = () => {
   const [speed, setSpeed] = useState(100);
   const [letterGenerationAmount, setLetterGenerationAmount] = useState(3);
   const [minWordLength, setMinWordLength] = useState(1);
+  const [isWrappingEnabled, setIsWrappingEnabled] = useState(false);
+  const [isTouchControlEnabled, setIsTouchControlEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newHighscore, setNewHighscore] = useState(false);
+
+  const navigate = useNavigation();
 
 
   const fetchSettings = async () => {
@@ -38,10 +41,14 @@ const SnakeGame = () => {
     const speed = await AsyncStorage.getItem('speed') || 100;
     const letterGenerationAmount = await AsyncStorage.getItem('letterGenerationAmount') || 3;
     const minWordLength = await AsyncStorage.getItem('minWordLength') || 1;
+    const wrappingEnabled = await AsyncStorage.getItem('isWrappingEnabled') || false;
+    const touchControlEnabled = await AsyncStorage.getItem('isTouchControlEnabled') || false;
 
     setSpeed(parseInt(speed));
     setLetterGenerationAmount(parseInt(letterGenerationAmount));
     setMinWordLength(parseInt(minWordLength));
+    setIsWrappingEnabled(wrappingEnabled === 'true');
+    setIsTouchControlEnabled(touchControlEnabled === 'true');
   }
 
   // If we want to run when tab is focused, we can use useFocusEffect from react-navigation
@@ -148,6 +155,21 @@ const SnakeGame = () => {
         break;
       default:
         break;
+    }
+
+    if (isWrappingEnabled) {
+      if (head.x < 0) {
+        head.x = screenWidth / CELL_SIZE - 1;
+      }
+      if (head.x >= screenWidth / CELL_SIZE) {
+        head.x = 0;
+      }
+      if (head.y < 0) {
+        head.y = GAME_HEIGHT / CELL_SIZE - 1;
+      }
+      if (head.y >= GAME_HEIGHT / CELL_SIZE) {
+        head.y = 0;
+      }
     }
 
     if (isOutOfBounds(head) || isCollision(newSnake, head)) {
@@ -307,6 +329,15 @@ const SnakeGame = () => {
                 { loading && <Text>Loading...</Text> }
                 { !loading && <Text>{isStarted ? 'Play Again' : 'Start Game'}</Text> }
               </TouchableOpacity>
+              <>
+                <Text style={{ marginVertical: 20, color: 'white' }}>Want to find out how to play?</Text>
+
+                <TouchableOpacity style={styles.button} onPress={() => {
+                  navigate.navigate('about');
+                }}>
+                  <Text>Show me the FAQs</Text>
+                </TouchableOpacity>
+              </>
             </View>
           </View>
         </View>
@@ -365,35 +396,45 @@ const SnakeGame = () => {
         </View>
       </PanGestureHandler>
       <View style={styles.controls}>
-          <TouchableOpacity style={styles.button} onPress={() => handleWord()}>
-            <Text style={styles.word}>{calculateScore()}</Text>
-          </TouchableOpacity>
-          { !isValidWord && word.length > 0 && (
-            <TouchableOpacity style={styles.button} onPress={() => handleDropWord()}>
-              <Text style={styles.word}>Drop word</Text>
-            </TouchableOpacity>
-          )}
 
-        <Text>Score: {score}</Text>
 
-        <Text>Speed: {speed}</Text>
-        <Text>Letter generation amount: {letterGenerationAmount}</Text>
-        <Text>Minimum word length: {minWordLength}</Text>
-
-        {/* <TouchableOpacity style={styles.button} onPress={() => handlePress('UP')}>
-          <Text>UP</Text>
-        </TouchableOpacity>
         <View style={styles.row}>
-          <TouchableOpacity style={styles.button} onPress={() => handlePress('LEFT')}>
-            <Text>LEFT</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => handlePress('RIGHT')}>
-            <Text>RIGHT</Text>
-          </TouchableOpacity>
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+
+            <TouchableOpacity style={styles.button} onPress={() => handleWord()}>
+              <Text style={styles.word}>{calculateScore()}</Text>
+            </TouchableOpacity>
+            { !isValidWord && word.length > 0 && (
+              <TouchableOpacity style={styles.button} onPress={() => handleDropWord()}>
+                <Text style={styles.word}>Drop word</Text>
+              </TouchableOpacity>
+            )}
+
+            <Text>Score: {score}</Text>
+            <Text>Speed: {speed}</Text>
+            <Text>Letter generation amount: {letterGenerationAmount}</Text>
+            <Text>Minimum word length: {minWordLength}</Text>
+          </View>
+
+          { isTouchControlEnabled &&
+            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+              <TouchableOpacity style={styles.button} onPress={() => handlePress('UP')}>
+                <Text>UP</Text>
+              </TouchableOpacity>
+              <View style={styles.row}>
+                <TouchableOpacity style={styles.button} onPress={() => handlePress('LEFT')}>
+                  <Text>LEFT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button} onPress={() => handlePress('RIGHT')}>
+                  <Text>RIGHT</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={styles.button} onPress={() => handlePress('DOWN')}>
+                <Text>DOWN</Text>
+              </TouchableOpacity>
+            </View>
+          }
         </View>
-        <TouchableOpacity style={styles.button} onPress={() => handlePress('DOWN')}>
-          <Text>DOWN</Text>
-        </TouchableOpacity> */}
       </View>
       </>
       }
@@ -485,6 +526,9 @@ const styles = StyleSheet.create({
     borderRadius: CELL_SIZE * 0.25,
     borderWidth: CELL_SIZE * 0.1,
     borderColor: 'white',
+  },
+  row: {
+    flexDirection: 'row',
   },
 });
 
