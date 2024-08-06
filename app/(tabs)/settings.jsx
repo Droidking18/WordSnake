@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { collapseTextChangeRangesAcrossMultipleVersions } from 'typescript';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function TabTwoScreen() {
+export default function Settings() {
 
   const isDarkMode = useColorScheme() === 'dark';
 

@@ -16,7 +16,7 @@ import { useFocusEffect } from 'expo-router';
 
 const width = Dimensions.get('window').width;
 
-export default function TabTwoScreen() {
+export default function Leaderboard() {
 
   const getInfoText = () => {
 
